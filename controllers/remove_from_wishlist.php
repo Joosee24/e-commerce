@@ -19,7 +19,7 @@ $stmt = $conn->prepare("DELETE FROM wishlist WHERE user_id = ? AND produk_id = ?
 $stmt->bind_param("ii", $user_id, $produk_id);
 $stmt->execute();
 
-echo "<script>alert('Produk dihapus dari wishlist!'); window.location.href='wishlist.php';</script>";
+echo "<script>alert('Produk dihapus dari wishlist!'); window.location.href='../../ecommerce/views/user/wishlist.php';</script>";
 
 $stmt->close();
 $conn->close();

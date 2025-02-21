@@ -37,7 +37,7 @@ $result = $stmt->get_result();
         <a href="cart.php"><i class="fa-solid fa-cart-shopping" style="color: #000000;"></i></a>
         <div class="border-l-2 border-gray-400 h-6"></div>
         <a href="dashboard.php" class="text-black hover:underline">Dashboard</a>
-        <a href="whistlist.php" class="text-black hover:underline">whistlist</a>
+        <a href="wishlist.php" class="text-black hover:underline">wishlist</a>
         <div class="relative">
             <button id="dropdownBtn" class="text-black focus:outline-none flex items-center space-x-2">
                 <span class="text-black"><?php echo $_SESSION['username']; ?></span>
@@ -57,10 +57,10 @@ $result = $stmt->get_result();
 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
     <?php while ($row = $result->fetch_assoc()): ?>
         <div class="bg-white p-4 shadow rounded-md">
-            <img src="<?= $row['gambar'] ?>" alt="<?= htmlspecialchars($row['nama_produk']) ?>" class="w-full h-40 object-cover mb-2 rounded">
+            <img src="../../uploads/<?= $row['gambar'] ?>" alt="<?= htmlspecialchars($row['nama_produk']) ?>" class="w-full h-40 object-cover mb-2 rounded">
             <h2 class="font-semibold"><?= htmlspecialchars($row['nama_produk']) ?></h2>
             <p class="text-gray-700"><?= htmlspecialchars($row['kategori']) ?></p>
-            <a href="remove_from_wishlist.php?produk_id=<?= $row['id'] ?>" class="text-red-500 text-sm hover:underline">Hapus</a>
+            <a href="../../controllers/remove_from_wishlist.php?produk_id=<?= $row['id'] ?>" class="text-red-500 text-sm hover:underline">Hapus</a>
         </div>
     <?php endwhile; ?>
 </div>

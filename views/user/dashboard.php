@@ -42,6 +42,7 @@ $result = $stmt->get_result();
 $ratingQuery = $conn->query("SELECT users.username, ratings.rating, ratings.review, ratings.created_at FROM ratings JOIN users ON ratings.user_id = users.id ORDER BY ratings.created_at DESC");
 $ratings = $ratingQuery->fetch_all(MYSQLI_ASSOC);
 
+
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -82,7 +83,7 @@ $ratings = $ratingQuery->fetch_all(MYSQLI_ASSOC);
         <a href="cart.php"><i class="fa-solid fa-cart-shopping" style="color: #000000;"></i></a>
         <div class="border-l-2 border-gray-400 h-6"></div>
         <a href="dashboard.php" class="text-black hover:underline">Dashboard</a>
-        <a href="whistlist.php" class="text-black hover:underline">whistlist</a>
+        <a href="wishlist.php" class="text-black hover:underline">wishlist</a>
         <div class="relative">
             <button id="dropdownBtn" class="text-black focus:outline-none flex items-center space-x-2">
                 <span class="text-black"><?php echo $_SESSION['username']; ?></span>
@@ -138,7 +139,7 @@ $ratings = $ratingQuery->fetch_all(MYSQLI_ASSOC);
                     <div>
                         <div class="flex flex-row justify-between">
                             <h3 class="text-lg font-semibold text-gray-500"><?= htmlspecialchars($row['nama_produk']); ?></h3>
-                            <button class="wishlist-button" data-produk-id="<?= $produk_id ?>">
+                            <button class="wishlist-btn" data-produk-id="<?= intval($row['id']); ?>">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
                                     <path d="M19.84 4.61a5.5 5.5 0 0 0-7.78 0L12 4.67l-.06-.06a5.5 5.5 0 0 0-7.78 7.78l7.78 7.78 7.78-7.78a5.5 5.5 0 0 0 0-7.78z"/>
                                 </svg>
@@ -382,22 +383,28 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 //whistlist conection
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".wishlist-button").forEach(button => {
-        button.addEventListener("click", function () {
-            let produkId = this.getAttribute("data-produk-id");
+document.querySelectorAll(".wishlist-btn").forEach((button) => {
+    button.addEventListener("click", function () {
+        const produkId = this.getAttribute("data-produk-id");
+        
+        console.log("Produk ID yang dikirim:", produkId); // 🔍 Cek apakah ID benar
 
-            fetch("../../controllers/add_to_whistlist.php?produk_id=" + produkId, {
-                method: "GET"
-            })
-            .then(response => response.text())
-            .then(data => {
-                alert(data); // Tampilkan pesan dari PHP
-            })
-            .catch(error => console.error("Error:", error));
-        });
+        fetch("../../controllers/add_to_whistlist.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({ produk_id: produkId }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Response dari server:", data); // 🔍 Debug respons dari server
+            alert(data.message);
+        })
+        .catch(error => console.error("Error:", error));
     });
 });
+
+
+
 
 //untuk rating 
 document.addEventListener("DOMContentLoaded", function () {
