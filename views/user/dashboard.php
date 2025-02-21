@@ -37,6 +37,11 @@ if (!empty($kategori_terpilih)) {
 
 $stmt->execute();
 $result = $stmt->get_result();
+
+// Ambil semua rating dan ulasan untuk ditampilkan
+$ratingQuery = $conn->query("SELECT users.username, ratings.rating, ratings.review, ratings.created_at FROM ratings JOIN users ON ratings.user_id = users.id ORDER BY ratings.created_at DESC");
+$ratings = $ratingQuery->fetch_all(MYSQLI_ASSOC);
+
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -77,6 +82,7 @@ $result = $stmt->get_result();
         <a href="cart.php"><i class="fa-solid fa-cart-shopping" style="color: #000000;"></i></a>
         <div class="border-l-2 border-gray-400 h-6"></div>
         <a href="dashboard.php" class="text-black hover:underline">Dashboard</a>
+        <a href="whistlist.php" class="text-black hover:underline">whistlist</a>
         <div class="relative">
             <button id="dropdownBtn" class="text-black focus:outline-none flex items-center space-x-2">
                 <span class="text-black"><?php echo $_SESSION['username']; ?></span>
@@ -118,20 +124,26 @@ $result = $stmt->get_result();
         </li>
     <?php endforeach; ?>
     </ul>
-
     <div class="container mt-6">
         <h2 class="text-2xl font-bold mb-4">Daftar Produk</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-6">
+        <div class="grid grid-cols-5 gap-10">
             <?php while ($row = $result->fetch_assoc()): ?>
-                <div class="bg-white shadow-lg rounded-lg max-w-48 product">
+                <div class="product">
                     <div>
                         <img src="../../uploads/<?= $row['gambar']; ?>" 
                              alt="<?= htmlspecialchars($row['nama_produk']); ?>" 
-                             class="w-full h-48 object-cover rounded-t-lg">
+                             class="img-produk w-full object-cover rounded-t-lg">
                     </div>
                     <p class="kategori text-gray-500 text-sm px-4 py-1 rounded-bl-xl"><?= htmlspecialchars($row['kategori']); ?></p>
-                    <div class="p-4">
-                        <h3 class="text-lg font-semibold text-gray-500"><?= htmlspecialchars($row['nama_produk']); ?></h3>
+                    <div>
+                        <div class="flex flex-row justify-between">
+                            <h3 class="text-lg font-semibold text-gray-500"><?= htmlspecialchars($row['nama_produk']); ?></h3>
+                            <button class="wishlist-button" data-produk-id="<?= $produk_id ?>">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                                    <path d="M19.84 4.61a5.5 5.5 0 0 0-7.78 0L12 4.67l-.06-.06a5.5 5.5 0 0 0-7.78 7.78l7.78 7.78 7.78-7.78a5.5 5.5 0 0 0 0-7.78z"/>
+                                </svg>
+                            </button>
+                        </div>
                         <p class="text-black font-bold text-lg mt-2">
                             Rp <?= number_format($row['harga'], 2, ',', '.'); ?>
                         </p>
@@ -145,6 +157,50 @@ $result = $stmt->get_result();
         </div>
         <p id="no-results" class="text-red-500 mt-4 hidden">Item tidak ditemukan</p>
     </div>
+
+    <div class="border b-2 bg-gray-100 mt-10"></div>
+  <section class="mt-10">
+    <h3 class="text-2xl font-bold">rating web</h3>
+    <div class="max-w-2xl mt-4 bg-white p-6 shadow-2xl rounded-md">
+        <h2 class="text-lg font-semibold mb-4">Beri Rating & Ulasan</h2>
+
+        <form action="../../controllers/rate.php" method="POST" class="space-y-4">
+            <div class="flex space-x-1" id="star-rating">
+                <?php for ($i = 1; $i <= 5; $i++): ?>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="rating" value="<?= $i ?>" class="hidden" required>
+                        <span class="text-3xl text-gray-400 star">★</span>
+                    </label>
+                <?php endfor; ?>
+            </div>
+
+            <textarea name="review" class="w-full border p-2 rounded-md" placeholder="Tulis ulasan Anda di sini..." required></textarea>
+
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Kirim</button>
+        </form>
+    </div>
+
+    <div class="max-w-full mt-10 bg-white p-6 shadow-2xl rounded-md">
+        <h2 class="text-lg font-semibold mb-4">Ulasan Pengguna</h2>
+        
+        <?php if (!empty($ratings)): ?>
+            <?php foreach ($ratings as $r): ?>
+                <div class="border-b py-3">
+                    <p class="font-semibold"><?= htmlspecialchars($r['username'] ?? '', ENT_QUOTES, 'UTF-8') ?></p>
+                    <p>
+                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                            <span class="text-xl <?= $i <= $r['rating'] ? 'text-yellow-500' : 'text-gray-300' ?>">★</span>
+                        <?php endfor; ?>
+                    </p>
+                    <p class="text-gray-700"><?= htmlspecialchars($r['review'] ?? '', ENT_QUOTES, 'UTF-8') ?></p>
+                    <small class="text-gray-500"><?= date('d M Y, H:i', strtotime($r['created_at'])) ?></small>
+                </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <p class="text-gray-500">Belum ada ulasan.</p>
+        <?php endif; ?>
+    </div>
+    </section>
 </main>
 <footer class="border-t-2 p-6">
     <section class="flex flex-row">
@@ -258,9 +314,18 @@ nav {
 .visible {
     opacity: 1;
 }
+
+.img-produk{
+    transition:0.3s;
+}
+
+.img-produk:hover{
+    filter: brightness(.9);
+}
 </style>
 
 <script>
+//dropdown users
 document.addEventListener("DOMContentLoaded", function () {
     const dropdownBtn = document.getElementById("dropdownBtn");
     const dropdownMenu = document.getElementById("dropdownMenu");
@@ -315,4 +380,62 @@ document.addEventListener("DOMContentLoaded", function () {
     showSlide();
     setInterval(showSlide, 3000);
 });
+
+//whistlist conection
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".wishlist-button").forEach(button => {
+        button.addEventListener("click", function () {
+            let produkId = this.getAttribute("data-produk-id");
+
+            fetch("../../controllers/add_to_whistlist.php?produk_id=" + produkId, {
+                method: "GET"
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data); // Tampilkan pesan dari PHP
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    });
+});
+
+//untuk rating 
+document.addEventListener("DOMContentLoaded", function () {
+            const stars = document.querySelectorAll("#star-rating .star");
+            const inputs = document.querySelectorAll("input[name='rating']");
+
+            stars.forEach((star, index) => {
+                star.addEventListener("click", function () {
+                    inputs[index].checked = true;
+                    updateStars(index);
+                });
+
+                star.addEventListener("mouseover", function () {
+                    highlightStars(index);
+                });
+
+                star.addEventListener("mouseleave", function () {
+                    resetStars();
+                });
+            });
+
+            function updateStars(selectedIndex) {
+                stars.forEach((star, index) => {
+                    star.classList.toggle("text-yellow-500", index <= selectedIndex);
+                    star.classList.toggle("text-gray-400", index > selectedIndex);
+                });
+            }
+
+            function highlightStars(hoverIndex) {
+                stars.forEach((star, index) => {
+                    star.classList.toggle("text-yellow-400", index <= hoverIndex);
+                    star.classList.toggle("text-gray-300", index > hoverIndex);
+                });
+            }
+
+            function resetStars() {
+                let selectedIndex = [...inputs].findIndex(input => input.checked);
+                updateStars(selectedIndex);
+            }
+        });
 </script>

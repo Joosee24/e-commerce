@@ -38,6 +38,7 @@ $sizes = $query->get_result()->fetch_all(MYSQLI_ASSOC);
         <a href="cart.php"><i class="fa-solid fa-cart-shopping" style="color: #000000;"></i></a>
         <div class="border-l-2 border-gray-400 h-6"></div>
         <a href="dashboard.php" class="text-black hover:underline">Dashboard</a>
+        <a href="whistlist.php" class="text-black hover:underline">whistlist</a>
         <div class="relative">
             <button id="dropdownBtn" class="text-black focus:outline-none flex items-center space-x-2">
                 <span class="text-black"><?php echo $_SESSION['username']; ?></span>
