@@ -83,7 +83,8 @@ $ratings = $ratingQuery->fetch_all(MYSQLI_ASSOC);
         <a href="cart.php"><i class="fa-solid fa-cart-shopping" style="color: #000000;"></i></a>
         <div class="border-l-2 border-gray-400 h-6"></div>
         <a href="dashboard.php" class="text-black hover:underline">Dashboard</a>
-        <a href="wishlist.php" class="text-black hover:underline">wishlist</a>
+        <a href="wishlist.php" class="text-black hover:underline">Wishlist</a>
+        <a href="#">History</a>
         <div class="relative">
             <button id="dropdownBtn" class="text-black focus:outline-none flex items-center space-x-2">
                 <span class="text-black"><?php echo $_SESSION['username']; ?></span>
@@ -112,14 +113,14 @@ $ratings = $ratingQuery->fetch_all(MYSQLI_ASSOC);
 
     <ul class="flex gap-5 mt-5">
     <li>
-        <a href="?kategori=" class="border border-gray-400 rounded-lg p-2 <?= empty($kategori_terpilih) ? 'bg-gray-300' : '' ?>">
+        <a href="?kategori=" class="border border-gray-400 rounded-lg p-2 <?= empty($kategori_terpilih) ? 'bg-black text-white'  : '' ?>">
             All Kategori
         </a>
     </li>
     <?php foreach ($kategori_list as $kategori) : ?>
         <li>
             <a href="?kategori=<?= urlencode($kategori) ?>" 
-               class="border border-gray-400 rounded-lg p-2 <?= ($kategori_terpilih === $kategori) ? 'bg-gray-300' : '' ?>">
+               class="border border-gray-400 rounded-lg p-2 <?= ($kategori_terpilih === $kategori) ? 'bg-black text-white' : '' ?>">
                 <?= htmlspecialchars($kategori) ?>
             </a>
         </li>
@@ -150,7 +151,7 @@ $ratings = $ratingQuery->fetch_all(MYSQLI_ASSOC);
                         </p>
                         <a href="product_detail.php?id=<?= $row['id']; ?>"
                            class="btn-view mt-4 block text-black text-center py-2 border border-black rounded-md">
-                            View Order
+                            View Product
                         </a>
                     </div>
                 </div>
@@ -256,7 +257,7 @@ nav {
 }
 
 .categori {
-    background-color: #04AA6D;
+    background-color: #000000;
     color: white;
     padding: 10px;
     font-size: 16px;
@@ -264,9 +265,6 @@ nav {
     cursor: pointer;
 }
 
-.categori:hover, .kategori:focus {
-    background-color: #3e8e41;
-}
 
 #myInput {
     box-sizing: border-box;
@@ -290,11 +288,10 @@ nav {
     color: #ffffff;
 }
 
-.btn-view:hover {
-    background: linear-gradient(135deg, #388e3c, #66bb6a); 
+.btn-view{
+    background: #000000;
     color: #ffffff;
-    border: none;
-    transition: 0.2s;
+    border: 2px solid #ffffff;
 }
 
 .slider {

@@ -51,22 +51,42 @@ $result = $stmt->get_result();
         </div>
     </div>
 </nav>
-  <section>
+  <main class="m-6">
   <h1 class="text-xl font-bold mb-4">Wishlist Saya</h1>
 
-<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+<div class="grid grid-cols-5 gap-7">
     <?php while ($row = $result->fetch_assoc()): ?>
-        <div class="bg-white p-4 shadow rounded-md">
-            <img src="../../uploads/<?= $row['gambar'] ?>" alt="<?= htmlspecialchars($row['nama_produk']) ?>" class="w-full h-40 object-cover mb-2 rounded">
-            <h2 class="font-semibold"><?= htmlspecialchars($row['nama_produk']) ?></h2>
-            <p class="text-gray-700"><?= htmlspecialchars($row['kategori']) ?></p>
-            <a href="../../controllers/remove_from_wishlist.php?produk_id=<?= $row['id'] ?>" class="text-red-500 text-sm hover:underline">Hapus</a>
+        <div class="">
+            <img src="../../uploads/<?= $row['gambar'] ?>" alt="<?= htmlspecialchars($row['nama_produk']) ?>" class="img-produk w-full h-64 object-cover rounded">
+            <p class="kategori text-gray-700  rounded-bl-xl pl-2"><?= htmlspecialchars($row['kategori']) ?></p>
+            <h2 class="font-semibold m-2"><?= htmlspecialchars($row['nama_produk']) ?></h2>
+            <div class="flex flex-col gap-3  justify-between">
+            <button 
+            class="text-white bg-black border border-white rounded-md p-2"
+            onclick="window.location.href='../user/product_detail.php?produk_id=<?= $row['id'] ?>'">view</button>
+            <a href="../../controllers/remove_from_wishlist.php?produk_id=<?= $row['id'] ?>" class="text-white bg-red-600 p-2 text-sm ml-auto"><i class="fa-solid fa-trash" style="color: #ffffff;"></i>Hapus</a>
+            </div>
         </div>
     <?php endwhile; ?>
 </div>
-  </section>
+    </main>
 </body>
 </html>
+
+<style>
+.kategori {
+    background: linear-gradient(135deg, #388e3c, #66bb6a); 
+    color: #ffffff;
+}
+
+.img-produk{
+    transition:0.3s;
+}
+
+.img-produk:hover{
+    filter: brightness(.9);
+}
+</style>
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
