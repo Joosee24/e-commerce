@@ -17,6 +17,14 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
+//profil
+$user_id = $_SESSION['user_id'];
+$stmt = $conn->prepare("SELECT profile_picture FROM users WHERE id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$user = $stmt->get_result()->fetch_assoc();
+$profile_picture = $user ? $user['profile_picture'] : 'default.png';
+
 ?>
 
 <!DOCTYPE html>
@@ -38,6 +46,7 @@ $result = $stmt->get_result();
         <div class="border-l-2 border-gray-400 h-6"></div>
         <a href="dashboard.php" class="text-black hover:underline">Dashboard</a>
         <a href="wishlist.php" class="text-black hover:underline">wishlist</a>
+        <img src="../../uploads/<?= htmlspecialchars($profile_picture); ?>" alt="Profile Picture" class="h-12 w-12 rounded-full object-cover border-2 border-black">
         <div class="relative">
             <button id="dropdownBtn" class="text-black focus:outline-none flex items-center space-x-2">
                 <span class="text-black"><?php echo $_SESSION['username']; ?></span>
@@ -46,6 +55,7 @@ $result = $stmt->get_result();
                 </svg>
             </button>
             <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-10">
+            <a href="#" id="openModal" class="block px-4 py-2 text-red-600 hover:bg-gray-200">profile</a>
                 <a href="../../auth/logout.php" class="block px-4 py-2 text-red-600 hover:bg-gray-200">Logout</a>
             </div>
         </div>

@@ -42,6 +42,13 @@ $result = $stmt->get_result();
 $ratingQuery = $conn->query("SELECT users.username, ratings.rating, ratings.review, ratings.created_at FROM ratings JOIN users ON ratings.user_id = users.id ORDER BY ratings.created_at DESC");
 $ratings = $ratingQuery->fetch_all(MYSQLI_ASSOC);
 
+//untuk profil
+$user_id = $_SESSION['user_id'];
+$stmt = $conn->prepare("SELECT profile_picture FROM users WHERE id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$user = $stmt->get_result()->fetch_assoc();
+$profile_picture = $user ? $user['profile_picture'] : 'default.png';
 
 ?>
 <!DOCTYPE html>
@@ -52,6 +59,7 @@ $ratings = $ratingQuery->fetch_all(MYSQLI_ASSOC);
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- <link rel="stylesheet" href="../../src/output.css"> -->
     <title>Beranda - Toko Baju</title>
 </head>
 <body class="bg-gray-100">
@@ -85,6 +93,7 @@ $ratings = $ratingQuery->fetch_all(MYSQLI_ASSOC);
         <a href="dashboard.php" class="text-black hover:underline">Dashboard</a>
         <a href="wishlist.php" class="text-black hover:underline">Wishlist</a>
         <a href="#">History</a>
+        <img src="../../uploads/<?= htmlspecialchars($profile_picture); ?>" alt="Profile Picture" class="h-12 w-12 rounded-full object-cover border-2 border-black">
         <div class="relative">
             <button id="dropdownBtn" class="text-black focus:outline-none flex items-center space-x-2">
                 <span class="text-black"><?php echo $_SESSION['username']; ?></span>
@@ -93,23 +102,40 @@ $ratings = $ratingQuery->fetch_all(MYSQLI_ASSOC);
                 </svg>
             </button>
             <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-10">
+                <a href="#" id="openModal" class="block px-4 py-2 text-red-600 hover:bg-gray-200">profile</a>
                 <a href="../../auth/logout.php" class="block px-4 py-2 text-red-600 hover:bg-gray-200">Logout</a>
             </div>
         </div>
     </div>
 </nav>
 
-<main class="p-6">
-    <section class="iklan relative w-full overflow-hidden">
-        <div class="slider flex transition-transform duration-500 ease-in-out">
-            <div class="slide">
-                <img src="../../img/newbrand.jpg" alt="models" class="w-full h-96 object-cover">
-            </div>
-            <div class="slide">
-                <img src="../../img/outfit.jpg" alt="models" class="w-full h-96 object-cover">
-            </div>
+ <!-- Modal Upload Foto -->
+ <div id="modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white z-40 p-6 rounded-lg shadow-lg w-96">
+            <h2 class="text-xl font-semibold mb-4">Upload Foto Profil</h2>
+            <form action="../../controllers/upload_profile.php" method="POST" enctype="multipart/form-data">
+                <input type="file" name="profile_picture" class="mb-4 w-full">
+                <div class="flex justify-end gap-2">
+                    <button type="button" id="closeModal" class="px-4 py-2 bg-gray-500 text-white rounded">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded">Upload</button>
+                </div>
+            </form>
         </div>
-    </section>
+    </div>
+
+<main class="p-6">
+<section class="iklan relative w-full overflow-hidden rounded-xl flex items-center p-4 z-0">
+    <div class="relative w-full">
+        <div id="slider" class="flex flex-row gap-20 items-center text-center transition-opacity duration-1000 ease-in-out">
+            <img id="slider-img" class="object-contain" src="../../img/lizz.png" alt="lizz ive">
+            <div class="flex flex-col">
+            <h3 id="slider-title" class="text-4xl text-white font-bold mt-4">Hallo Selamat Datang di Luxury Vibes</h3>
+            <span id="slider-desc" class="text-sm text-white">Dapatkan barang yang menarik dengan kualitas terbaik</span>
+            </div>
+            <img src="../../img/baner.png" alt="" class=" banner ml-auto h-1/2 object-contain">
+        </div>
+    </div>
+</section>
 
     <ul class="flex gap-5 mt-5">
     <li>
@@ -294,15 +320,28 @@ nav {
     border: 2px solid #ffffff;
 }
 
-.slider {
-    display: flex;
-    transition: transform 0.5s ease-in-out;
+#slider {
+    z-index: 10; /* Pastikan ini lebih rendah dari modal */
 }
 
-.slide {
-    min-width: 100%;
-    transition: opacity 1s ease-in-out;
+#slider-img {
+    width: 300px;
+    height: 500px;
+    object-fit: cover; 
+    padding-left:2rem;
+    filter: drop-shadow(10px 10px 20px rgba(255, 255, 255, 0.3));
 }
+
+
+.iklan {
+    backdrop-filter: blur(8px) brightness(20%);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.banner {
+    filter: drop-shadow(10px 10px 20px rgba(255, 255, 255, 0.3));
+}
+
 
 .hidden {
     opacity: 0;
@@ -320,15 +359,21 @@ nav {
 .img-produk:hover{
     filter: brightness(.9);
 }
+
+#modal {
+z-index: 50; 
+
+}
 </style>
 
 <script>
-//dropdown users
+// Dropdown users
 document.addEventListener("DOMContentLoaded", function () {
     const dropdownBtn = document.getElementById("dropdownBtn");
     const dropdownMenu = document.getElementById("dropdownMenu");
 
-    dropdownBtn.addEventListener("click", function () {
+    dropdownBtn.addEventListener("click", function (event) {
+        event.stopPropagation();
         dropdownMenu.classList.toggle("hidden");
     });
 
@@ -336,6 +381,15 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!dropdownBtn.contains(event.target) && !dropdownMenu.contains(event.target)) {
             dropdownMenu.classList.add("hidden");
         }
+    });
+
+    // Form profile modal
+    document.getElementById("openModal").addEventListener("click", function() {
+        document.getElementById("modal").classList.remove("hidden");
+    });
+
+    document.getElementById("closeModal").addEventListener("click", function() {
+        document.getElementById("modal").classList.add("hidden");
     });
 
     // Fitur search produk
@@ -358,88 +412,91 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        if (hasResults) {
-            noResultsMessage.classList.add("hidden");
-        } else {
-            noResultsMessage.classList.remove("hidden");
-        }
+        noResultsMessage.classList.toggle("hidden", hasResults);
     });
 
     // Fitur slider gambar
-    const slides = document.querySelectorAll(".slide");
-    const slider = document.querySelector(".slider");
-    let index = 0;
+    const slides = [
+        { img: "../../img/lizz.png", title: "Hallo Selamat Datang di Luxury Vibes", desc: "Dapatkan barang yang menarik dengan kualitas terbaik" },
+        { img: "../../img/ive.png", title: "DapatkanPromo Spesial", desc: "Diskon hingga 50% untuk produk tertentu! menarik bukan ??" },
+        { img: "../../img/lizz-ive.png", title: "Kualitas Terbaik", desc: "Kami menjamin kualitas terbaik untuk setiap produk yang Anda beli." }
+    ];
+    
+    let currentSlide = 0;
+    const imgElement = document.getElementById("slider-img");
+    const titleElement = document.getElementById("slider-title");
+    const descElement = document.getElementById("slider-desc");
+    const slider = document.getElementById("slider");
+    
+    function changeSlide() {
+        slider.style.opacity = 0;
+        setTimeout(() => {
+            currentSlide = (currentSlide + 1) % slides.length;
+            imgElement.src = slides[currentSlide].img;
+            titleElement.textContent = slides[currentSlide].title;
+            descElement.textContent = slides[currentSlide].desc;
+            slider.style.opacity = 1;
+        }, 500);
+    }
+    
+    setInterval(changeSlide, 5000);
 
-    function showSlide() {
-        slider.style.transform = `translateX(-${index * 100}%)`;
-        index = (index + 1) % slides.length;
+    // Wishlist connection
+    document.querySelectorAll(".wishlist-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            const produkId = this.getAttribute("data-produk-id");
+            console.log("Produk ID yang dikirim:", produkId);
+
+            fetch("../../controllers/add_to_whistlist.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({ produk_id: produkId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Response dari server:", data);
+                alert(data.message);
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    });
+
+    // Rating system
+    const stars = document.querySelectorAll("#star-rating .star");
+    const inputs = document.querySelectorAll("input[name='rating']");
+
+    function updateStars(selectedIndex) {
+        stars.forEach((star, index) => {
+            star.classList.toggle("text-yellow-500", index <= selectedIndex);
+            star.classList.toggle("text-gray-400", index > selectedIndex);
+        });
     }
 
-    showSlide();
-    setInterval(showSlide, 3000);
-});
+    function highlightStars(hoverIndex) {
+        stars.forEach((star, index) => {
+            star.classList.toggle("text-yellow-400", index <= hoverIndex);
+            star.classList.toggle("text-gray-300", index > hoverIndex);
+        });
+    }
 
-//whistlist conection
-document.querySelectorAll(".wishlist-btn").forEach((button) => {
-    button.addEventListener("click", function () {
-        const produkId = this.getAttribute("data-produk-id");
-        
-        console.log("Produk ID yang dikirim:", produkId); // 🔍 Cek apakah ID benar
+    function resetStars() {
+        let selectedIndex = [...inputs].findIndex(input => input.checked);
+        updateStars(selectedIndex);
+    }
 
-        fetch("../../controllers/add_to_whistlist.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ produk_id: produkId }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log("Response dari server:", data); // 🔍 Debug respons dari server
-            alert(data.message);
-        })
-        .catch(error => console.error("Error:", error));
+    stars.forEach((star, index) => {
+        star.addEventListener("click", function () {
+            inputs[index].checked = true;
+            updateStars(index);
+        });
+
+        star.addEventListener("mouseover", function () {
+            highlightStars(index);
+        });
+
+        star.addEventListener("mouseleave", function () {
+            resetStars();
+        });
     });
 });
-
-
-
-
-//untuk rating 
-document.addEventListener("DOMContentLoaded", function () {
-            const stars = document.querySelectorAll("#star-rating .star");
-            const inputs = document.querySelectorAll("input[name='rating']");
-
-            stars.forEach((star, index) => {
-                star.addEventListener("click", function () {
-                    inputs[index].checked = true;
-                    updateStars(index);
-                });
-
-                star.addEventListener("mouseover", function () {
-                    highlightStars(index);
-                });
-
-                star.addEventListener("mouseleave", function () {
-                    resetStars();
-                });
-            });
-
-            function updateStars(selectedIndex) {
-                stars.forEach((star, index) => {
-                    star.classList.toggle("text-yellow-500", index <= selectedIndex);
-                    star.classList.toggle("text-gray-400", index > selectedIndex);
-                });
-            }
-
-            function highlightStars(hoverIndex) {
-                stars.forEach((star, index) => {
-                    star.classList.toggle("text-yellow-400", index <= hoverIndex);
-                    star.classList.toggle("text-gray-300", index > hoverIndex);
-                });
-            }
-
-            function resetStars() {
-                let selectedIndex = [...inputs].findIndex(input => input.checked);
-                updateStars(selectedIndex);
-            }
-        });
 </script>
