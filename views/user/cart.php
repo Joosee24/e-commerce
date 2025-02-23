@@ -49,7 +49,12 @@ $profile_picture = $user ? $user['profile_picture'] : 'default.png';
         <div class="border-l-2 border-gray-400 h-6"></div>
         <a href="dashboard.php" class="text-black hover:underline">Dashboard</a>
         <a href="wishlist.php" class="text-black hover:underline">wishlist</a>
-        <img src="../../uploads/<?= htmlspecialchars($profile_picture); ?>" alt="Profile Picture" class="h-12 w-12 rounded-full object-cover border-2 border-black">
+        <?php if (!empty($profile_picture)) : ?>
+            <img src="../../uploads/<?= htmlspecialchars($profile_picture); ?>" 
+                alt="Profile Picture" 
+                class="h-12 w-12 rounded-full object-cover border-2 border-black">
+        <?php endif; ?>
+
         <div class="relative">
             <button id="dropdownBtn" class="text-black focus:outline-none flex items-center space-x-2">
                 <span class="text-black"><?php echo $_SESSION['username']; ?></span>
@@ -157,7 +162,7 @@ document.querySelectorAll(".cart-checkbox").forEach(checkbox => {
 function updateTotal() {
     let total = 0;
     document.querySelectorAll(".cart-checkbox:checked").forEach(checkbox => {
-        total += parseFloat(checkbox.dataset.harga) * parseInt(checkbox.dataset.quantity);
+        total += Number(checkbox.dataset.harga) * Number(checkbox.dataset.quantity);
     });
     document.getElementById("total-harga").innerText = new Intl.NumberFormat('id-ID', { 
         style: 'currency', currency: 'IDR' 
@@ -172,8 +177,8 @@ document.getElementById("pay-button").addEventListener("click", function (event)
         selectedItems.push({
             produk_id: checkbox.dataset.produkId,
             nama: checkbox.dataset.nama,
-            quantity: checkbox.dataset.quantity,
-            harga: checkbox.dataset.harga,
+            quantity: Number(checkbox.dataset.quantity),
+            harga: Number(checkbox.dataset.harga),
             size: checkbox.dataset.size,
             gambar: checkbox.dataset.gambar
         });
@@ -184,7 +189,6 @@ document.getElementById("pay-button").addEventListener("click", function (event)
         return;
     }
 
-    // Tampilkan modal untuk input nama dan alamat
     document.getElementById("checkout-modal").classList.remove("hidden");
 });
 
@@ -193,8 +197,8 @@ document.getElementById("close-modal").addEventListener("click", function () {
 });
 
 document.getElementById("submit-checkout").addEventListener("click", async function () {
-    const nama = document.getElementById("nama").value;
-    const alamat = document.getElementById("alamat").value;
+    const nama = document.getElementById("nama").value.trim();
+    const alamat = document.getElementById("alamat").value.trim();
 
     if (!nama || !alamat) {
         alert("Nama dan alamat harus diisi.");
@@ -202,25 +206,26 @@ document.getElementById("submit-checkout").addEventListener("click", async funct
     }
 
     let selectedItems = [];
+    let totalHarga = 0;
+
     document.querySelectorAll(".cart-checkbox:checked").forEach(checkbox => {
+        let quantity = Number(checkbox.dataset.quantity);
+        let harga = Number(checkbox.dataset.harga);
+
         selectedItems.push({
             produk_id: checkbox.dataset.produkId,
             nama: checkbox.dataset.nama,
-            quantity: checkbox.dataset.quantity,
-            harga: checkbox.dataset.harga,
+            quantity: quantity,
+            harga: harga,
             size: checkbox.dataset.size,
             gambar: checkbox.dataset.gambar
         });
-    });
 
-    // Hitung total harga
-    let totalHarga = 0;
-    selectedItems.forEach(item => {
-        totalHarga += parseFloat(item.harga) * parseInt(item.quantity);
+        totalHarga += harga * quantity;
     });
 
     try {
-        const response = await fetch("../../controllers/payment.php", {
+        const response = await fetch("../../controllers/payment.php?action=pay", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ cart: selectedItems, total_harga: totalHarga, nama: nama, alamat: alamat }),
@@ -228,13 +233,28 @@ document.getElementById("submit-checkout").addEventListener("click", async funct
 
         const json = await response.json();
         if (json.snapToken) {
-            window.snap.pay(json.snapToken);
+            snap.pay(json.snapToken, {
+                onSuccess: function(result) {
+                    console.log("Payment Success:", result);
+                    window.location.href = "success.php?order_id=" + json.order_id;
+                },
+                onPending: function(result) {
+                    console.log("Payment Pending:", result);
+                    alert("Pembayaran sedang diproses.");
+                },
+                onError: function(result) {
+                    console.log("Payment Error:", result);
+                    alert("Pembayaran gagal.");
+                }
+            });
+        } else {
+            alert("Gagal membuat transaksi.");
         }
     } catch (error) {
+        console.error("Fetch Error:", error);
         alert("Terjadi kesalahan saat memproses checkout.");
     }
 
-    // Tutup modal setelah checkout
     document.getElementById("checkout-modal").classList.add("hidden");
 });
 
@@ -243,7 +263,6 @@ document.getElementById("dropdownBtn").addEventListener("click", function () {
     menu.classList.toggle("hidden");
 });
 
-// Menutup dropdown jika klik di luar
 window.addEventListener("click", function (event) {
     let dropdownBtn = document.getElementById("dropdownBtn");
     let dropdownMenu = document.getElementById("dropdownMenu");
@@ -252,6 +271,7 @@ window.addEventListener("click", function (event) {
         dropdownMenu.classList.add("hidden");
     }
 });
+
 </script>
 
 </body>

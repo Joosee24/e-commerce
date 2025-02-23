@@ -31,7 +31,7 @@ $stmt = $conn->prepare("SELECT AVG(rating) as avg_rating, COUNT(*) as total_revi
 $stmt->bind_param("i", $id);
 $stmt->execute();
 $reviewData = $stmt->get_result()->fetch_assoc();
-$avg_rating = round($reviewData['avg_rating'], 1);
+$avg_rating = round($reviewData['avg_rating'] ?? 0, 1);
 $total_reviews = $reviewData['total_reviews'];
 
 // Ambil semua ulasan
@@ -68,7 +68,11 @@ $total_reviews = count($reviews);
         <div class="border-l-2 border-gray-400 h-6"></div>
         <a href="dashboard.php" class="text-black hover:underline">Dashboard</a>
         <a href="wishlist.php" class="text-black hover:underline">wishlist</a>
-        <img src="../../uploads/<?= htmlspecialchars($profile_picture); ?>" alt="Profile Picture" class="h-12 w-12 rounded-full object-cover border-2 border-black">
+        <?php if (!empty($profile_picture)) : ?>
+            <img src="../../uploads/<?= htmlspecialchars($profile_picture); ?>" 
+                alt="Profile Picture" 
+                class="h-12 w-12 rounded-full object-cover border-2 border-black">
+        <?php endif; ?>
         <div class="relative">
             <button id="dropdownBtn" class="text-black focus:outline-none flex items-center space-x-2">
                 <span class="text-black"><?php echo $_SESSION['username']; ?></span>
